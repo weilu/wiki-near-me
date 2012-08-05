@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//WAPFORUM//DTD XHTML Mobile 1.0//EN" "http://www.wapforum.org/DTD/xhtml-mobile10.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<title>Geolocation API Demo</title>
+	<meta content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;" name="viewport"/>
+	<style type="text/css">
+		iframe{
+			border: 1px solid lightgrey;
+		}
+	</style>
+	<script src="http://zeptojs.com/zepto.min.js"></script>
+	<script src="http://maps.google.com/maps/api/js?sensor=false"
+	          type="text/javascript"></script>
+	<script>
+		function successHandler(location) {
+		    var message = document.getElementById("message");
+			var html = [];
+			var latitude = location.coords.latitude;
+			var longitude = location.coords.longitude;
+
+		    var map = new google.maps.Map(document.getElementById('map'), {
+		      zoom: 15,
+		      center: new google.maps.LatLng(latitude, longitude),
+		      mapTypeId: google.maps.MapTypeId.ROADMAP
+		    });
+
+		    var infowindow = new google.maps.InfoWindow();
+		    addMarker(['Me', latitude, longitude]);
+
+			html.push("<p>Longitude: ", longitude, "</p>");
+		    html.push("<p>Latitude: ", latitude, "</p>");
+		    html.push("<p>Accuracy: ", location.coords.accuracy, " meters</p>");
+		    message.innerHTML = html.join("");
+
+			$.ajax({
+				url: 'http://api.wikilocation.org/articles?lat=' + latitude + '&lng=' + longitude +'&limit=1&jsonp=?',
+				type: 'GET',
+				async: false,
+				contentType: "application/json",
+				dataType: 'jsonp',
+				jsonpCallback: 'wiki',
+				success: showWikiPage
+			});
+
+			function addMarker(location, optoins){
+				var marker = new google.maps.Marker({
+			    	position: new google.maps.LatLng(location[1], location[2]),
+					color: 'blue',
+					size: 'small',
+			        map: map
+			    });
+
+			    google.maps.event.addListener(marker, 'click', (function(marker) {
+			        return function() {
+			        	infowindow.setContent(location[0]);
+			        	infowindow.open(map, marker);
+			        }
+			    })(marker));
+			}
+
+			function showWikiPage(data){
+				var article = data.articles[0];
+				addMarker([article.title, article.lat, article.lng]);
+				$(document.body).append('<iframe src="' + article.mobileurl + '"></iframe>');
+			}
+		}
+		function errorHandler(error) {
+		    alert('Attempt to get location failed: ' + error.message);
+		}
+		navigator.geolocation.getCurrentPosition(successHandler, errorHandler);
+	</script>
+</head>
+
+<body>
+<div id="message">Location unknown</div>
+<div id="map" style="width: 256px; height: 256px;"></div>
+</body>
+</html>
