@@ -2,7 +2,7 @@
   "name": "wiki-near-me",
   "version": "0.0.1",
   "dependencies": {
-    "express": "2.5.x"
+    "express": "4.17.x"
   },
   "engines": {
     "node": "0.8.x"
